@@ -46,3 +46,26 @@ dependencies {
   ksp(libs.androidx.appfunctions.compiler)
 }
 ```
+
+## 2. AppFunctions implementieren
+
+Die für AppFunctions verwendeten Datentypen werden mit `@AppFunctionSerializable` definiert. 
+Anschließend stellt ein `AppFunctionService` die gewünschten Funktionen mit `@AppFunction` bereit.
+
+KDoc-Beschreibungen erläutern Funktionen, Parameter und Datenfelder in natürlicher Sprache. 
+Mit `isDescribedByKDoc = true` übernimmt der Compiler diese Beschreibungen in die generierten Metadaten.
+
+## 3. Service registrieren
+
+Der generierte AppFunctions-Service wird im `AndroidManifest.xml` registriert. 
+
+## 4. AppFunctions testen
+
+Nach Build und Installation können die registrierten AppFunctions über ADB geprüft und direkt aufgerufen werden. 
+
+Für natürlichsprachige Tests steht zusätzlich der AppFunctions Testing Agent zur Verfügung.
+
+
+
+
+
