@@ -63,6 +63,8 @@ Der generierte AppFunctions-Service wird im `AndroidManifest.xml` registriert.
 
 ### ADB
 
+Nach Build und Installation können die registrierten AppFunctions über ADB geprüft und direkt aufgerufen werden. 
+
 - Alle offenen Aufgaben abfragen (beide null)
   ```
   ~/Android/Sdk/platform-tools/adb shell "cmd app_function execute-app-function \
@@ -84,9 +86,7 @@ Der generierte AppFunctions-Service wird im `AndroidManifest.xml` registriert.
   --function 'de.albiladi.todoappfunctions.appfunctions.BaseTodoAppFunctionService#getOpenTasks' \
   --parameters '{\"fromDate\":\"2026-10-01\",\"toDate\":\"2026-10-31\"}'"
   ```
-- Wenn nur toDate übergeben, wird der Aufruf mit einer Fehlermeldung abgebrochen
-  
-Nach Build und Installation können die registrierten AppFunctions über ADB geprüft und direkt aufgerufen werden. 
+- Wenn nur toDate übergeben, wird der Aufruf mit einer Fehlermeldung abgebrochen  
 
 Für natürlichsprachige Tests steht zusätzlich der AppFunctions Testing Agent zur Verfügung.
 
