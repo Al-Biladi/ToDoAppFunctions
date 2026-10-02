@@ -65,6 +65,29 @@ Der generierte AppFunctions-Service wird im `AndroidManifest.xml` registriert.
 
 Nach Build und Installation können die registrierten AppFunctions über ADB geprüft und direkt aufgerufen werden. 
 
+
+- Aufruf nur mit Titel) - Aufgabe erstellen
+  ```
+  ~/Android/Sdk/platform-tools/adb shell "cmd app_function execute-app-function \
+  --package de.albiladi.todoappfunctions \
+  --function 'de.albiladi.todoappfunctions.appfunctions.BaseTodoAppFunctionService#createTask' \
+  --parameters '{\"title\":\"Shopping\"}'"
+  ```
+- Nur date übergeben (ohne time) - Aufgabe erstellen
+  ```
+  ~/Android/Sdk/platform-tools/adb shell "cmd app_function execute-app-function \
+  --package de.albiladi.todoappfunctions \
+  --function 'de.albiladi.todoappfunctions.appfunctions.BaseTodoAppFunctionService#createTask' \
+  --parameters '{\"title\":\"Shopping\",\"date\":\"2026-10-02\"}'"
+  ```
+- Nur time übergeben (ohne date)
+  ```
+  ~/Android/Sdk/platform-tools/adb shell "cmd app_function execute-app-function \
+  --package de.albiladi.todoappfunctions \
+  --function 'de.albiladi.todoappfunctions.appfunctions.BaseTodoAppFunctionService#createTask' \
+  --parameters '{\"title\":\"Shopping\",\"time\":\"18:00:00\"}'"
+  ```
+    
 - Alle offenen Aufgaben abfragen (beide null)
   ```
   ~/Android/Sdk/platform-tools/adb shell "cmd app_function execute-app-function \
