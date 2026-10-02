@@ -1,18 +1,14 @@
 package de.albiladi.todoappfunctions.appfunctions
 
-
 import androidx.annotation.RequiresApi
 import androidx.appfunctions.AppFunction
 import androidx.appfunctions.AppFunctionElementNotFoundException
 import androidx.appfunctions.AppFunctionInvalidArgumentException
 import androidx.appfunctions.AppFunctionService
 import androidx.appfunctions.AppFunctionServiceEntryPoint
-import de.albiladi.todoappfunctions.data.Task
 import de.albiladi.todoappfunctions.data.TaskDatabase
-import java.time.LocalDate
-import java.time.LocalTime
+import de.albiladi.todoappfunctions.data.TaskRepository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 @RequiresApi(36)
@@ -22,46 +18,38 @@ import kotlinx.coroutines.withContext
 )
 abstract class BaseTodoAppFunctionService : AppFunctionService() {
 
-    private val taskDao by lazy {
-        TaskDatabase.getInstance(applicationContext).taskDao()
+    private val taskRepository by lazy {
+        TaskRepository(
+            TaskDatabase.getInstance(applicationContext).taskDao()
+        )
     }
 
     /**
      * Creates a new task in the user's task list.
      *
      * @param title The required title of the task. It must not be empty.
-     * @param date The optional due date of the task.
-     * @param time The optional due time of the task.
+     * @param date The optional due date in ISO format (YYYY-MM-DD).
+     * @param time The optional due time in ISO format (HH:mm or HH:mm:ss).
      * @return The newly created task.
-     * @throws AppFunctionInvalidArgumentException If the title is empty.
+     * @throws AppFunctionInvalidArgumentException If an argument is invalid.
      */
     @AppFunction(isDescribedByKDoc = true)
     suspend fun createTask(
         title: String,
-        date: LocalDate? = null,
-        time: LocalTime? = null,
+        date: String? = null,
+        time: String? = null,
     ): AppFunctionTask = withContext(Dispatchers.IO) {
-        if (title.isBlank()) {
+        try {
+            taskRepository.createTask(
+                title = title,
+                date = date,
+                time = time,
+            ).toAppFunctionTask()
+        } catch (e: IllegalArgumentException) {
             throw AppFunctionInvalidArgumentException(
-                "The task title must not be empty."
+                e.message ?: "Invalid task data."
             )
         }
-
-        val task = Task(
-            title = title.trim(),
-            date = date?.toString(),
-            time = time?.toString(),
-            isCompleted = false,
-        )
-
-        val taskId = taskDao.insert(task)
-
-        val createdTask = taskDao.getById(taskId)
-            ?: throw AppFunctionElementNotFoundException(
-                "The newly created task with ID $taskId could not be loaded."
-            )
-
-        return@withContext createdTask.toAppFunctionTask()
     }
 
     /**
@@ -71,17 +59,15 @@ abstract class BaseTodoAppFunctionService : AppFunctionService() {
      * a due date, are returned. When only a start date is provided, only
      * tasks due on that date are returned.
      *
-     * @param fromDate The optional first date to include.
-     * @param toDate The optional last date to include.
+     * @param fromDate The optional first date to include in ISO format (YYYY-MM-DD).
+     * @param toDate The optional last date to include in ISO format (YYYY-MM-DD).
      * @return The open tasks matching the specified date range.
-     * @throws AppFunctionInvalidArgumentException If the date range is
-     * invalid because the start date is missing or the end date is
-     * before the start date.
+     * @throws AppFunctionInvalidArgumentException If the date range is invalid.
      */
     @AppFunction(isDescribedByKDoc = true)
     suspend fun getOpenTasks(
-        fromDate: LocalDate? = null,
-        toDate: LocalDate? = null,
+        fromDate: String? = null,
+        toDate: String? = null,
     ): List<AppFunctionTask> = withContext(Dispatchers.IO) {
         if (toDate != null && fromDate == null) {
             throw AppFunctionInvalidArgumentException(
@@ -89,25 +75,22 @@ abstract class BaseTodoAppFunctionService : AppFunctionService() {
             )
         }
 
-        val tasks = if (fromDate == null) {
-            taskDao.getAllOpenTasks()
-        } else {
-            val effectiveToDate = toDate ?: fromDate
-
-            if (effectiveToDate.isBefore(fromDate)) {
-                throw AppFunctionInvalidArgumentException(
-                    "The end date must not be before the start date."
+        try {
+            val tasks = if (fromDate == null) {
+                taskRepository.getAllOpenTasks()
+            } else {
+                taskRepository.getOpenTasks(
+                    fromDate = fromDate,
+                    toDate = toDate ?: fromDate,
                 )
             }
 
-            taskDao.observeForPeriod(
-                fromDate = fromDate.toString(),
-                toDate = effectiveToDate.toString(),
-                completed = false,
-            ).first()
+            tasks.map { it.toAppFunctionTask() }
+        } catch (e: IllegalArgumentException) {
+            throw AppFunctionInvalidArgumentException(
+                e.message ?: "Invalid date range."
+            )
         }
-
-        tasks.map(Task::toAppFunctionTask)
     }
 
     /**
@@ -127,22 +110,13 @@ abstract class BaseTodoAppFunctionService : AppFunctionService() {
         taskId: Long,
         completed: Boolean = true,
     ): AppFunctionTask = withContext(Dispatchers.IO) {
-        val changedRows = taskDao.setCompleted(
+        val updatedTask = taskRepository.setCompleted(
             taskId = taskId,
             completed = completed,
+        ) ?: throw AppFunctionElementNotFoundException(
+            "No task exists with ID $taskId."
         )
 
-        if (changedRows == 0) {
-            throw AppFunctionElementNotFoundException(
-                "No task exists with ID $taskId."
-            )
-        }
-
-        val updatedTask = taskDao.getById(taskId)
-            ?: throw AppFunctionElementNotFoundException(
-                "The updated task with ID $taskId could not be loaded."
-            )
-
-        return@withContext updatedTask.toAppFunctionTask()
+        updatedTask.toAppFunctionTask()
     }
 }

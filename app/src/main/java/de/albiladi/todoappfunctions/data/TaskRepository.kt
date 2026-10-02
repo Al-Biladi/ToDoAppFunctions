@@ -1,8 +1,7 @@
 package de.albiladi.todoappfunctions.data
 
 
-import de.albiladi.todoappfunctions.data.Task
-import de.albiladi.todoappfunctions.data.TaskDao
+
 
 import java.time.LocalDate
 import java.time.LocalTime
@@ -16,6 +15,10 @@ class TaskRepository(
 
     fun observeAll(): Flow<List<Task>> {
         return taskDao.observeAll()
+    }
+
+    suspend fun getAllOpenTasks(): List<Task> {
+        return taskDao.getAllOpenTasks()
     }
 
     fun observeOpenTasks(
@@ -152,6 +155,6 @@ class TaskRepository(
 
     companion object {
         private val TIME_FORMAT: DateTimeFormatter =
-            DateTimeFormatter.ofPattern("HH:mm")
+            DateTimeFormatter.ofPattern("HH:mm:ss")
     }
 }
