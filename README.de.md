@@ -109,7 +109,7 @@ Nach Build und Installation können die registrierten AppFunctions über ADB gep
   --function 'de.albiladi.todoappfunctions.appfunctions.BaseTodoAppFunctionService#getOpenTasks' \
   --parameters '{\"fromDate\":\"2026-10-01\",\"toDate\":\"2026-10-31\"}'"
   ```
-- Wenn nur toDate übergeben, wird der Aufruf mit einer Fehlermeldung abgebrochen  
+- Wird nur toDate übergeben, wird der Aufruf mit einer Fehlermeldung abgebrochen  
 
 Für natürlichsprachige Tests steht zusätzlich der AppFunctions Testing Agent zur Verfügung.
 
